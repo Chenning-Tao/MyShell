@@ -123,6 +123,33 @@ MyShell/fast:
 	$(MAKE) -f CMakeFiles/MyShell.dir/build.make CMakeFiles/MyShell.dir/build
 .PHONY : MyShell/fast
 
+command.o: command.cpp.o
+
+.PHONY : command.o
+
+# target to build an object file
+command.cpp.o:
+	$(MAKE) -f CMakeFiles/MyShell.dir/build.make CMakeFiles/MyShell.dir/command.cpp.o
+.PHONY : command.cpp.o
+
+command.i: command.cpp.i
+
+.PHONY : command.i
+
+# target to preprocess a source file
+command.cpp.i:
+	$(MAKE) -f CMakeFiles/MyShell.dir/build.make CMakeFiles/MyShell.dir/command.cpp.i
+.PHONY : command.cpp.i
+
+command.s: command.cpp.s
+
+.PHONY : command.s
+
+# target to generate assembly for a file
+command.cpp.s:
+	$(MAKE) -f CMakeFiles/MyShell.dir/build.make CMakeFiles/MyShell.dir/command.cpp.s
+.PHONY : command.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -159,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... MyShell"
+	@echo "... command.o"
+	@echo "... command.i"
+	@echo "... command.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

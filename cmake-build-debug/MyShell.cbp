@@ -85,6 +85,12 @@
 		<Unit filename="/data1/tcn/Myshell/Head.h">
 			<Option target="MyShell"/>
 		</Unit>
+		<Unit filename="/data1/tcn/Myshell/command.cpp">
+			<Option target="MyShell"/>
+		</Unit>
+		<Unit filename="/data1/tcn/Myshell/command.h">
+			<Option target="MyShell"/>
+		</Unit>
 		<Unit filename="/data1/tcn/Myshell/main.cpp">
 			<Option target="MyShell"/>
 		</Unit>

@@ -3,4 +3,4 @@ project(MyShell)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(MyShell main.cpp Head.h)
+add_executable(MyShell main.cpp Head.h command.cpp command.h)

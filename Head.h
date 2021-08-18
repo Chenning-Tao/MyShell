@@ -9,6 +9,9 @@
 #include <fstream>
 #include <filesystem>
 #include <pwd.h>
+#include <unistd.h>
+#include <vector>
+#include <ctime>
 
 #define YELLOW "\e[1;33m"
 #define CYAN "\e[0;36m"
@@ -20,7 +23,5 @@
 #define HOST_NAME_LENGTH 100
 
 
-
-std::string command[128];
 
 #endif //MYSHELL_HEAD_H
