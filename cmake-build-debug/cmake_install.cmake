@@ -1,4 +1,4 @@
-# Install script for directory: /tmp/tmp.YvEhxSze9e
+# Install script for directory: /data1/tcn/Myshell
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/tmp/tmp.YvEhxSze9e/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/data1/tcn/Myshell/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
