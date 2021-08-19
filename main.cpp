@@ -10,8 +10,8 @@ string MyInput;
 struct RedirectStructure{
     ifstream inFile;
     ofstream outFile;
-    streambuf *oldIn;
-    streambuf *oldOut;
+    streambuf *oldIn{};
+    streambuf *oldOut{};
     string inFileName;
     string outFileName;
 };
@@ -89,15 +89,23 @@ int main(int argc, char **argv) {
             split(command[i], inner_command, ' ');
             // 处理重定向
             Redirect(inner_command);
-            for(int test = 0; test < command.size(); ++test){
-                cout << inner_command[test] << " ";
-            }
             // 调用函数执行命令 如果返回0代表函数结束
             if(!execute(inner_command)) exit(0);
             // 清理inner_command
             inner_command.clear();
+            // 清理前一个的Input
+            MyInput.clear();
+            // 后一个的输入是前一个的输出
+            MyInput = MyOutput;
+            // 如果是最后一个进行输出
+            if (i == command.size() - 1){
+                if(!MyOutput.empty()) cout << MyOutput << endl;
+                // 输出错误
+                if(!MyError.empty()) cout << MyError << endl;
+            }
             // 恢复重定向
             ResumeRedirect();
+            MyOutput.clear();
         }
         command.clear();
     }
@@ -255,7 +263,7 @@ int execute(const vector<string> &command) {
 
     }
     else {
-
+        MyError = "Illegal instruction!";
     }
     return 1;
 }
