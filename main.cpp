@@ -221,6 +221,8 @@ int execute(const vector<string> &command) {
     }
     // 打印内容
     else if (main_command == "echo"){
+        // 如果管道有内容
+        if(!MyInput.empty()) my_echo(MyInput);
         // 如果后面有内容
         if(command.size() > 1){
             for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
@@ -287,26 +289,12 @@ int execute(const vector<string> &command) {
     else if (main_command == "unset"){
 
     }
-    else {
-        MyError = "Illegal instruction!";
+    else if (main_command == "more"){
+        // 如果只有一个，从管道进行输入
+        if (command.size() == 1) my_more(MyInput);
     }
+    else MyError = "Illegal instruction!";
     return 1;
-}
-
-void split(string raw, vector<string> &result, char sep) {
-    // 当前字符串的起始位置
-    int begin = 0;
-    // 在最后补上分隔符
-    raw.push_back(sep);
-    for (int i = 0; i < raw.size(); ++i)
-    {
-        if(raw[i] == sep){
-            // 如果不是最后一个
-            if(begin < i) result.push_back(raw.substr(begin, (i - begin)));
-            // 更新位置
-            begin = i + 1;
-        }
-    }
 }
 
 void InitEnv() {

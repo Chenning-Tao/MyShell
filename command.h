@@ -22,5 +22,7 @@ void my_dir(const string& dir);
 void my_cat(const string& file);
 void my_echo(const string& var);
 void my_test(const string& var1, const string& op, const string& var2);
+void my_more(const string& words);
+void split(string raw, vector<string> &result, char sep);
 
 #endif //MYSHELL_COMMAND_H

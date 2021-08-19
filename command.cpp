@@ -62,3 +62,37 @@ void my_test(const string& var1, const string& op, const string& var2){
     // 数字不等
     if (op == "-ne") argv = (atoi(var1.c_str()) != atoi(var2.c_str())) ? "0" : "1";
 }
+
+void my_more(const string& words){
+    vector<string> lines;
+    // 按照行分割
+    split(words, lines, '\n');
+    int pos = 1;
+    while(pos <= lines.size()){
+        // 输出
+        cout << lines[pos++] << endl;
+        // 每10行需要用户输入
+        if (pos % 10 == 0)
+        {
+            cout << "more";
+            getchar();
+            cout << endl;
+        }
+    }
+}
+
+void split(string raw, vector<string> &result, char sep) {
+    // 当前字符串的起始位置
+    int begin = 0;
+    // 在最后补上分隔符
+    raw.push_back(sep);
+    for (int i = 0; i < raw.size(); ++i)
+    {
+        if(raw[i] == sep){
+            // 如果不是最后一个
+            if(begin < i) result.push_back(raw.substr(begin, (i - begin)));
+            // 更新位置
+            begin = i + 1;
+        }
+    }
+}
