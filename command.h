@@ -8,10 +8,13 @@
 #include <unistd.h>
 #include <string>
 #include <pwd.h>
+#include <vector>
+#include <dirent.h>
 using namespace std;
 
 extern string MyError;
 extern string MyOutput;
 void my_cd(const string& dir);
+void my_dir(const string& dir);
 
 #endif //MYSHELL_COMMAND_H

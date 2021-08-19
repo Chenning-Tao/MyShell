@@ -208,8 +208,14 @@ int execute(const vector<string> &command) {
         if (command.size() != 1) MyError = "Too many argument!";
         else printf ("\033c");
     }
+    // 显示目录内容
     else if (main_command == "dir"){
-
+        // 如果参数过多
+        if(command.size() > 2) MyError = "Too many argument!";
+        // 回到查看当前目录
+        else if(command.size() == 1) my_dir(getenv("pwd"));
+        // 跳转到指定目录
+        else my_dir(command[1]);
     }
     else if (main_command == "echo"){
 
@@ -229,13 +235,7 @@ int execute(const vector<string> &command) {
     // 显示当前目录
     else if (main_command == "pwd"){
         if (command.size() != 1) MyError = "Too many argument!";
-        else {
-            // 获取当前目录位置
-            char current_dir[300];
-            getcwd(current_dir, 300);
-            // 输出当前目录位置
-            MyOutput = current_dir;
-        }
+        else MyOutput = getenv("pwd");
     }
     else if (main_command == "set"){
 
@@ -307,6 +307,8 @@ void DisplayPrompt() {
     // 获取当前目录位置
     char current_dir[300];
     getcwd(current_dir, 300);
+    // 设置环境变量
+    setenv("pwd", current_dir, 1);
     // 输出当前目录位置
     printf(CYAN "%s", current_dir);
     printf(WHITE "$ ");
