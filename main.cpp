@@ -8,7 +8,14 @@ string MyInput;
 string argv;
 string arg[10];
 
+// 接受中断信号
+struct sigaction act;
+// 传输信号数据
+union sigval MySigval;
+bool background;
+
 RedirectStructure MyRedirect;
+ProcessStruct MyProcess;
 
 void DisplayPrompt();
 
@@ -48,6 +55,8 @@ int main(int argc, char **argv) {
     // 初始化重定向的输入输出流
     MyRedirect.oldIn = cin.rdbuf();
     MyRedirect.oldOut = cout.rdbuf();
+    // 处理是否后台运行
+    background = false;
 
     // 主程序循环
     while(true){
@@ -80,6 +89,13 @@ int main(int argc, char **argv) {
         for(int i = 0; i < command.size(); ++i){
             // 对命令按照空格划分
             split(command[i], inner_command, ' ');
+            // 判断是否后台运行
+            if(command[command.size() - 1] == "&"){
+                // 设置为true
+                background = true;
+                // 删除最后一个
+                command.erase(command.begin() + command.size() - 1);
+            }
             // 处理重定向
             Redirect(inner_command);
             // 调用函数执行命令 如果返回0代表函数结束
@@ -185,7 +201,7 @@ int execute(const vector<string> &command) {
         return 0;
     }
     // 后台运行
-    else if (main_command == "bg"){
+    else if (main_command == "bg" || background){
 
     }
     // 更改目录位置
@@ -335,6 +351,17 @@ void InitEnv() {
     getcwd(current_dir, 300);
     // 设置help的目录
     setenv("shell", current_dir, 1);
+
+    // 设置不屏蔽信号
+    sigemptyset(&act.sa_mask);
+    // 把处理函数的地址给函数指针
+    act.sa_sigaction = my_handler;
+    // 设置用第二个处理函数
+    act.sa_flags = SA_SIGINFO;
+    // 接收ctrl+z
+    sigaction(SIGTSTP, &act, nullptr);
+    // 接收继续执行
+    sigaction(SIGCONT, &act, nullptr);
 }
 
 void DisplayPrompt() {

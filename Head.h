@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <vector>
 #include <ctime>
+#include <csignal>
+#include <sys/wait.h>
 using namespace std;
 
 #define YELLOW "\e[1;33m"
@@ -19,8 +21,10 @@ using namespace std;
 #define WHITE "\e[1;37m"
 #define RED "\e[0;31m"
 
-
 #define HOST_NAME_LENGTH 100
+#define Running 1
+#define Done 2
+#define Stop 3
 
 // 重定向的结构
 struct RedirectStructure{
@@ -32,6 +36,11 @@ struct RedirectStructure{
     string outFileName;
 };
 
-
+// 进程结构
+struct ProcessStruct{
+    vector<pid_t> pid;
+    vector<string> instruction;
+    vector<int> status;
+};
 
 #endif //MYSHELL_HEAD_H

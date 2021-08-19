@@ -32,5 +32,8 @@ void split(string raw, vector<string> &result, char sep);
 void my_umask(const string& mode);
 void my_shift(int n);
 void my_exec_outside(vector<string> command);
+void my_handler(int sig, siginfo_t *info, void *p);
+void my_fg(int pid);
+string output_status(int status);
 
 #endif //MYSHELL_COMMAND_H

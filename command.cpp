@@ -7,6 +7,15 @@
 using namespace std;
 
 extern RedirectStructure MyRedirect;
+extern struct sigaction act;
+extern ProcessStruct MyProcess;
+extern union sigval MySigval;
+
+string output_status(int status){
+    if (status == Stop) return "Stop";
+    if (status == Done) return "Done";
+    if (status == Running) return "Running";
+}
 
 void my_exec_outside(vector<string> command){
     // 按照要求创建argument list
@@ -37,6 +46,14 @@ void my_exec_outside(vector<string> command){
     }
     // 如果是父进程
     else{
+        // 加入进程
+        MyProcess.pid.push_back(pid);
+        MyProcess.instruction.push_back(command[0]);
+        MyProcess.status.push_back(Running);
+        // 告诉父进程子进程有变化
+//        sigaction(SIGCLD, &act, nullptr);
+        // 将子进程放到前台
+        my_fg(pid);
 //        close(fd1); //关闭文件描述符
 //        close(fd2);
 //        MyProcess.ins.push_back(ins); //加入进程管理
@@ -166,4 +183,48 @@ void my_umask(const string& mode){
     }
     // 修改掩码
     else MyOutput = to_string(umask(atoi(mode.c_str())));
+}
+
+void my_handler(int sig, siginfo_t *info, void *p){
+    switch (sig) {
+        case SIGTSTP:
+            printf("test");
+            break;
+//            pid_t pid = fork();
+//            if(pid != 0) {
+//                printf("stop %d", info->si_pid);
+//                sigaction(SIGCHLD, &act, NULL);
+//            }
+        // 子进程结束信号
+        case SIGCHLD:
+            int i = 0;
+            // 找到序号
+            while (i < MyProcess.pid.size() && MyProcess.pid[i] != info->si_pid)
+                ++i;
+            // 更改状态
+            MyProcess.status[i] = Done;
+            break;
+    }
+}
+
+void my_fg(int pid){
+    // 找到对应序号
+    int i = 0;
+    while (MyProcess.pid[i++] != pid);
+    --i;
+    // 如果进程不在运行
+    if (MyProcess.status[i] != Running){
+        // 让进程继续运行
+        sigqueue(pid, SIGCONT, MySigval);
+        // 修改状态
+        MyProcess.status[i] = Running;
+    }
+    // 输出状态
+    cout << MyProcess.pid[i] << " " << MyProcess.instruction[i] << " " << output_status(MyProcess.status[i]) << endl;
+    int child;
+    // 等待进程结束并汇报状态
+    waitpid(pid, &child, WUNTRACED);
+    // 获取状态
+    if (WIFSTOPPED(child)) MyProcess.status[i] = Stop;
+    else MyProcess.status[i] = Done;
 }
