@@ -296,9 +296,15 @@ int execute(const vector<string> &command) {
             argv = MyOutput;
         }
     }
+    // 设置掩码
     else if (main_command == "umask"){
-
+        // 显示
+        if (command.size() == 1) my_umask("");
+        // 修改
+        else if (command.size() == 2) my_umask(command[1]);
+        else MyError = "Too many argument!";
     }
+    // 设置环境变量
     else if (main_command == "unset"){
         if (command.size() > 2) MyError = "Too many argument!";
         else if (command.size() < 2) MyError = "Missing argument!";

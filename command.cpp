@@ -96,3 +96,21 @@ void split(string raw, vector<string> &result, char sep) {
         }
     }
 }
+
+void my_umask(const string& mode){
+    // 输出掩码
+    if(mode.empty()){
+        //定义pre_mask保存当前掩码
+        mode_t pre_mask;
+        //umask()函数返回当前掩码，保存到pre_mask中
+        pre_mask = umask(0);
+        //重新设置掩码为pre_mask
+        umask(pre_mask);
+        //输出当前掩码
+        char b[100];
+        sprintf(b, "%04d", pre_mask);
+        MyOutput += b;
+    }
+    // 修改掩码
+    else MyOutput = to_string(umask(atoi(mode.c_str())));
+}

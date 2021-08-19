@@ -12,6 +12,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
 using namespace std;
 
 extern string MyError;
@@ -24,5 +25,6 @@ void my_echo(const string& var);
 void my_test(const string& var1, const string& op, const string& var2);
 void my_more(const string& words);
 void split(string raw, vector<string> &result, char sep);
+void my_umask(const string& mode);
 
 #endif //MYSHELL_COMMAND_H
