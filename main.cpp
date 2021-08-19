@@ -6,16 +6,8 @@ string MyError;
 string MyOutput;
 string MyInput;
 string argv;
+string arg[10];
 
-// 重定向的结构
-struct RedirectStructure{
-    ifstream inFile;
-    ofstream outFile;
-    streambuf *oldIn{};
-    streambuf *oldOut{};
-    string inFileName;
-    string outFileName;
-};
 RedirectStructure MyRedirect;
 
 void DisplayPrompt();
@@ -265,8 +257,13 @@ int execute(const vector<string> &command) {
         // 设置环境变量
         else setenv(command[1].c_str(), command[2].c_str(), 1);
     }
+    // 移位指令
     else if (main_command == "shift"){
-
+        // 默认移动1位
+        if (command.size() == 1) my_shift(1);
+        // 移动n位
+        else if (command.size() == 2) my_shift(stoi(command[1]));
+        else MyError = "Too many argument!";
     }
     // 显示文件内容
 //    else if (main_command == "cat"){
@@ -315,7 +312,7 @@ int execute(const vector<string> &command) {
 //        // 如果只有一个，从管道进行输入
 //        if (command.size() == 1) my_more(MyInput);
 //    }
-    else MyError = "Illegal instruction!";
+    else my_exec_outside(command);
     return 1;
 }
 

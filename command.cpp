@@ -2,9 +2,62 @@
 // Created by 陶辰宁 on 2021/8/18.
 //
 
-
+#include "Head.h"
 #include "command.h"
 using namespace std;
+
+extern RedirectStructure MyRedirect;
+
+void my_exec_outside(vector<string> command){
+    // 按照要求创建argument list
+    char* argument_list[command.size()+1];
+    for(int i = 0; i < command.size(); ++i){
+        // 分配空间
+        argument_list[i] = new char[command[1].length()];
+        // 进行拷贝
+        strcpy(argument_list[i], command[i].c_str());
+    }
+    // 最后一个是nullptr
+    argument_list[command.size()] = nullptr;
+    // 创建子进程
+    pid_t pid = fork();
+    // 打开重定向输入文件
+    int fd_in = open(MyRedirect.inFileName.c_str(), O_RDONLY);
+    // 打开重定向输出文件
+    int fd_out = open(MyRedirect.outFileName.c_str(), O_RDONLY);
+    // 如果是子进程
+    if (pid == 0)
+    {
+        dup2(fd_in, STDIN_FILENO);
+        dup2(fd_out, STDOUT_FILENO);
+        // 如果执行不成功
+        if(execvp(argument_list[0], argument_list) == -1)
+            MyError = "Illegal instruction!";
+        exit(0);
+    }
+    // 如果是父进程
+    else{
+//        close(fd1); //关闭文件描述符
+//        close(fd2);
+//        MyProcess.ins.push_back(ins); //加入进程管理
+//        MyProcess.PID.push_back(pid);
+//        MyProcess.stauts.push_back(Running);
+//        sigaction(SIGCLD, &act, NULL);
+//        my_fg(pid); //等待该子进程结束
+    }
+
+}
+
+void my_shift(int n){
+    // 最多10位
+    if (n > 10) arg->clear();
+    else {
+        // 移位
+        for(int i = 0; i < 10-n; ++i){
+            arg[i] = arg[n+i];
+        }
+    }
+}
 
 void my_cd(const string& dir){
     // 如果切换成功返回0

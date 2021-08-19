@@ -12,15 +12,25 @@
 #include <unistd.h>
 #include <vector>
 #include <ctime>
+using namespace std;
 
 #define YELLOW "\e[1;33m"
 #define CYAN "\e[0;36m"
 #define WHITE "\e[1;37m"
 #define RED "\e[0;31m"
-#define GREEN "\e[0;32m"
-#define CLEAR "\e[1;1H\e[2J"
+
 
 #define HOST_NAME_LENGTH 100
+
+// 重定向的结构
+struct RedirectStructure{
+    ifstream inFile;
+    ofstream outFile;
+    streambuf *oldIn{};
+    streambuf *oldOut{};
+    string inFileName;
+    string outFileName;
+};
 
 
 
