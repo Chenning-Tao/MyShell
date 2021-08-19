@@ -16,8 +16,10 @@ using namespace std;
 
 extern string MyError;
 extern string MyOutput;
+extern string argv;
 void my_cd(const string& dir);
 void my_dir(const string& dir);
 void my_cat(const string& file);
+void my_echo(const string& var);
 
 #endif //MYSHELL_COMMAND_H

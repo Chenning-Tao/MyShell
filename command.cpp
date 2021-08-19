@@ -37,3 +37,8 @@ void my_cat(const string& file){
     // 添加结果进入
     MyOutput += (buffer.str());
 }
+
+void my_echo(const string& var){
+    if(var == "$?") MyOutput +=(argv + "  ");
+    else MyOutput += (var + " ");
+}

@@ -5,6 +5,7 @@ using namespace std;
 string MyError;
 string MyOutput;
 string MyInput;
+string argv;
 
 // 重定向的结构
 struct RedirectStructure{
@@ -191,6 +192,7 @@ int execute(const vector<string> &command) {
         printf(CYAN "[MyShell] Good bye!\n");
         return 0;
     }
+    // 后台运行
     else if (main_command == "bg"){
 
     }
@@ -217,8 +219,15 @@ int execute(const vector<string> &command) {
         // 跳转到指定目录
         else my_dir(command[1]);
     }
+    // 打印内容
     else if (main_command == "echo"){
-
+        // 如果后面有内容
+        if(command.size() > 1){
+            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
+                if (*iter != " ") my_echo(*iter);
+            }
+            argv = MyOutput;
+        }
     }
     else if (main_command == "exec"){
 
@@ -236,6 +245,7 @@ int execute(const vector<string> &command) {
     else if (main_command == "pwd"){
         if (command.size() != 1) MyError = "Too many argument!";
         else MyOutput = getenv("pwd");
+        argv = MyOutput;
     }
     else if (main_command == "set"){
 
@@ -252,6 +262,7 @@ int execute(const vector<string> &command) {
                 if (*iter != " ") my_cat(*iter);
             }
         }
+        argv = MyOutput;
     }
     else if (main_command == "test"){
 
@@ -264,6 +275,7 @@ int execute(const vector<string> &command) {
             time_t now = time(nullptr);
             // 把 now 转换为字符串形式
             MyOutput = ctime(&now);
+            argv = MyOutput;
         }
     }
     else if (main_command == "umask"){
