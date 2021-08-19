@@ -4,6 +4,18 @@ using namespace std;
 
 string MyError;
 string MyOutput;
+string MyInput;
+
+// 重定向的结构
+struct RedirectStructure{
+    ifstream inFile;
+    ofstream outFile;
+    streambuf *oldIn;
+    streambuf *oldOut;
+    string inFileName;
+    string outFileName;
+};
+RedirectStructure MyRedirect;
 
 void DisplayPrompt();
 
@@ -12,6 +24,10 @@ void InitEnv();
 void split(string raw, vector<string> &result, char sep);
 
 int execute(const vector<string> &command);
+
+void Redirect(vector<string> &command);
+
+void ResumeRedirect();
 
 int main(int argc, char **argv) {
     // 读入文件的指针
@@ -36,6 +52,9 @@ int main(int argc, char **argv) {
     vector<string> command;
     // 用来存储非管道命令
     vector<string> inner_command;
+    // 初始化重定向的输入输出流
+    MyRedirect.oldIn = cin.rdbuf();
+    MyRedirect.oldOut = cout.rdbuf();
 
     // 主程序循环
     while(true){
@@ -48,6 +67,7 @@ int main(int argc, char **argv) {
                 continue;
             }
             else {
+                // 将读入内容显示到命令窗口
                 DisplayPrompt();
                 cout << raw << endl;
             }
@@ -67,12 +87,92 @@ int main(int argc, char **argv) {
         for(int i = 0; i < command.size(); ++i){
             // 对命令按照空格划分
             split(command[i], inner_command, ' ');
+            // 处理重定向
+            Redirect(inner_command);
+            for(int test = 0; test < command.size(); ++test){
+                cout << inner_command[test] << " ";
+            }
             // 调用函数执行命令 如果返回0代表函数结束
             if(!execute(inner_command)) exit(0);
             // 清理inner_command
             inner_command.clear();
+            // 恢复重定向
+            ResumeRedirect();
         }
         command.clear();
+    }
+}
+
+void ResumeRedirect() {
+    // 关闭文件
+    MyRedirect.inFile.close();
+    MyRedirect.outFile.close();
+    // 恢复旧的重定向
+    cin.rdbuf(MyRedirect.oldIn);
+    cout.rdbuf(MyRedirect.oldOut);
+}
+
+void Redirect(vector<string> &command) {
+    int in = -1, out = -1;
+    for(int i = 0; i < command.size(); ++i){
+        // 如果不是最后一个指令
+        if (i != command.size() - 1){
+            // 输出重定向
+            if (command[i] == ">" || command[i] == ">>"){
+                // 存储旧的流
+                MyRedirect.oldOut = cout.rdbuf(MyRedirect.outFile.rdbuf());
+                // 设置输出内容的名字
+                MyRedirect.outFileName = command[i+1];
+                // 输出流设置
+                if (command[i] == ">") MyRedirect.outFile.open(MyRedirect.outFileName, ios::out);
+                if (command[i] == ">>") MyRedirect.outFile.open(MyRedirect.outFileName, ios::app);
+                // 记录位置
+                out = i;
+            }
+            // 输入重定向
+            else if(command[i] == "<"){
+                // 存储旧的流
+                MyRedirect.oldIn = cin.rdbuf(MyRedirect.inFile.rdbuf());
+                // 设置输入内容的名字
+                MyRedirect.inFileName = command[i+1];
+                // 输入流设置
+                MyRedirect.inFile.open(MyRedirect.inFileName, ios::in);
+                // 记录位置
+                in = i;
+            }
+        }
+        // 如果只有重定向没有文件名
+        else if (command[i] == ">" || command[i] == ">>" || command[i] == "<"){
+            MyError = "No redirect file specified!";
+        }
+    }
+    if (in < out){
+        // 只有输出需要重定向
+        if(in == -1){
+            command.erase(command.begin()+out);
+            command.erase(command.begin()+out);
+        }
+        // 都需要重定向
+        else {
+            command.erase(command.begin()+in);
+            command.erase(command.begin()+in);
+            command.erase(command.begin()+out-2);
+            command.erase(command.begin()+out-2);
+        }
+    }
+    else if(out < in){
+        // 只有输入需要重定向
+        if(out == -1){
+            command.erase(command.begin()+in);
+            command.erase(command.begin()+in);
+        }
+        // 都需要重定向
+        else {
+            command.erase(command.begin()+out);
+            command.erase(command.begin()+out);
+            command.erase(command.begin()+in-2);
+            command.erase(command.begin()+in-2);
+        }
     }
 }
 
