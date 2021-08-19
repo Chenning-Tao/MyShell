@@ -27,3 +27,13 @@ void my_dir(const string& dir){
     // 关闭目录
     closedir(d);
 }
+
+void my_cat(const string& file){
+    ifstream temp(file.c_str());
+    // 初始化流
+    stringstream buffer;
+    // 读取相应文件
+    buffer << temp.rdbuf();
+    // 添加结果进入
+    MyOutput += (buffer.str());
+}

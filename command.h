@@ -10,11 +10,14 @@
 #include <pwd.h>
 #include <vector>
 #include <dirent.h>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
 extern string MyError;
 extern string MyOutput;
 void my_cd(const string& dir);
 void my_dir(const string& dir);
+void my_cat(const string& file);
 
 #endif //MYSHELL_COMMAND_H

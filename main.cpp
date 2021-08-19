@@ -243,6 +243,16 @@ int execute(const vector<string> &command) {
     else if (main_command == "shift"){
 
     }
+    // 显示文件内容
+    else if (main_command == "cat"){
+        if (command.size() == 1) MyError = "No file specified!";
+        else {
+            // 遍历所有可能的输入文件
+            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
+                if (*iter != " ") my_cat(*iter);
+            }
+        }
+    }
     else if (main_command == "test"){
 
     }
