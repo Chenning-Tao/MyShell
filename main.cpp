@@ -238,7 +238,11 @@ int execute(const vector<string> &command) {
 
     }
     else if (main_command == "help"){
-
+        // 获取help文件位置
+        string file_path = getenv("shell");
+        file_path += "/help.txt";
+        // 打开
+        my_cat(file_path);
     }
     else if (main_command == "jobs"){
 
@@ -249,23 +253,32 @@ int execute(const vector<string> &command) {
         else MyOutput = getenv("pwd");
         argv = MyOutput;
     }
+    // 设置环境变量
     else if (main_command == "set"){
-
+        // 如果只有一个参数，打印所有环境变量
+        if (command.size() == 1){
+            for(int i = 0; environ[i] != nullptr; ++i)
+                printf("%s\n",environ[i]);
+        }
+        else if (command.size() > 3) MyError = "Too many argument!";
+        else if (command.size() < 3) MyError = "Missing argument!";
+        // 设置环境变量
+        else setenv(command[1].c_str(), command[2].c_str(), 1);
     }
     else if (main_command == "shift"){
 
     }
     // 显示文件内容
-    else if (main_command == "cat"){
-        if (command.size() == 1) MyError = "No file specified!";
-        else {
-            // 遍历所有可能的输入文件
-            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
-                if (*iter != " ") my_cat(*iter);
-            }
-        }
-        argv = MyOutput;
-    }
+//    else if (main_command == "cat"){
+//        if (command.size() == 1) MyError = "No file specified!";
+//        else {
+//            // 遍历所有可能的输入文件
+//            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
+//                if (*iter != " ") my_cat(*iter);
+//            }
+//        }
+//        argv = MyOutput;
+//    }
     // 测试指令
     else if (main_command == "test"){
         if (command.size() > 4) MyError = "Too many argument!";
@@ -287,12 +300,15 @@ int execute(const vector<string> &command) {
 
     }
     else if (main_command == "unset"){
-
+        if (command.size() > 2) MyError = "Too many argument!";
+        else if (command.size() < 2) MyError = "Missing argument!";
+        // 设置环境变量
+        else setenv(command[1].c_str(), "", 1);
     }
-    else if (main_command == "more"){
-        // 如果只有一个，从管道进行输入
-        if (command.size() == 1) my_more(MyInput);
-    }
+//    else if (main_command == "more"){
+//        // 如果只有一个，从管道进行输入
+//        if (command.size() == 1) my_more(MyInput);
+//    }
     else MyError = "Illegal instruction!";
     return 1;
 }
@@ -311,6 +327,11 @@ void InitEnv() {
     gethostname(hostname, HOST_NAME_LENGTH);
     // 设置主机名
     setenv("hostname", hostname, 1);
+    // 获取当前目录位置
+    char current_dir[300];
+    getcwd(current_dir, 300);
+    // 设置help的目录
+    setenv("shell", current_dir, 1);
 }
 
 void DisplayPrompt() {
