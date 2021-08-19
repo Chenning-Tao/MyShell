@@ -39,6 +39,26 @@ void my_cat(const string& file){
 }
 
 void my_echo(const string& var){
+    // 如果是$?进行变量替换
     if(var == "$?") MyOutput +=(argv + "  ");
     else MyOutput += (var + " ");
+}
+
+void my_test(const string& var1, const string& op, const string& var2){
+    // 字符串相等
+    if (op == "=") argv = (var1 == var2) ? "0" : "1";
+    // 字符串不等
+    if (op == "!=") argv = (var1 != var2) ? "0" : "1";
+    // 数字相等
+    if (op == "-eq") argv = (atoi(var1.c_str()) == atoi(var2.c_str())) ? "0" : "1";
+    // 数字大于等于
+    if (op == "-ge") argv = (atoi(var1.c_str()) >= atoi(var2.c_str())) ? "0" : "1";
+    // 数字大于
+    if (op == "-gt") argv = (atoi(var1.c_str()) > atoi(var2.c_str())) ? "0" : "1";
+    // 数字小于等于
+    if (op == "-le") argv = (atoi(var1.c_str()) <= atoi(var2.c_str())) ? "0" : "1";
+    // 数字小于
+    if (op == "-lt") argv = (atoi(var1.c_str()) < atoi(var2.c_str())) ? "0" : "1";
+    // 数字不等
+    if (op == "-ne") argv = (atoi(var1.c_str()) != atoi(var2.c_str())) ? "0" : "1";
 }

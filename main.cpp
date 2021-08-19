@@ -264,8 +264,11 @@ int execute(const vector<string> &command) {
         }
         argv = MyOutput;
     }
+    // 测试指令
     else if (main_command == "test"){
-
+        if (command.size() > 4) MyError = "Too many argument!";
+        else if(command.size() < 4) MyError = "Missing argument!";
+        else my_test(command[1], command[2], command[3]);
     }
     // 显示当前时间
     else if (main_command == "time"){
