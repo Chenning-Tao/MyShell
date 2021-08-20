@@ -271,3 +271,22 @@ void my_bg(int pid){
     cout << MyProcess.pid[i] << "  " << MyProcess.instruction[i] << "  " << output_status(MyProcess.status[i]) << endl;
     waitpid(MyProcess.pid[i], nullptr, WNOHANG);
 }
+
+void my_background(vector<string> command){
+    // 建立子进程
+    pid_t pid = fork();
+    // 子进程
+    if (pid == 0){
+        my_exec_outside(command);
+        exit(0);
+    }
+    else{
+        MyProcess.pid.push_back(pid);
+        MyProcess.instruction.push_back(command[0]);
+        MyProcess.status.push_back(RUNNING);
+        MyProcess.type.emplace_back("BG");
+        int i = MyProcess.pid.size() - 1;
+        cout << MyProcess.pid[i] << "  " << MyProcess.instruction[i] << "  " << output_status(MyProcess.status[i]) << endl;
+        waitpid(MyProcess.pid[i], nullptr, WNOHANG);
+    }
+}

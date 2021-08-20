@@ -37,9 +37,7 @@ void my_fg(int pid);
 void my_jobs();
 void my_bg(int pid);
 string output_status(int status);
-void SIGCHLD_handler(int sig_no, siginfo_t* info, void* vcontext);
-void SIGTSTP_handler(int sig_no, siginfo_t* info, void* vcontext);
-void sig_tstp(int sig);
+void my_background(vector<string> command);
 
 
 #endif //MYSHELL_COMMAND_H

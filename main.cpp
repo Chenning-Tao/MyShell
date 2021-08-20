@@ -92,29 +92,30 @@ int main(int argc, char **argv) {
             split(command[i], inner_command, ' ');
             // 判断是否后台运行
             if(inner_command[inner_command.size() - 1] == "&"){
-                // 设置为true
-                background = true;
                 // 删除最后一个
                 inner_command.erase(inner_command.begin() + inner_command.size() - 1);
+                my_background(inner_command);
+                inner_command.clear();
+            }else {
+                // 处理重定向
+                Redirect(inner_command);
+                // 调用函数执行命令 如果返回0代表函数结束
+                if(!execute(inner_command)) exit(0);
+                // 清理inner_command
+                inner_command.clear();
+                // 清理前一个的Input
+                MyInput.clear();
+                // 后一个的输入是前一个的输出
+                MyInput = MyOutput;
+                // 如果是最后一个进行输出
+                if (i == command.size() - 1){
+                    if(!MyOutput.empty()) cout << MyOutput << endl;
+                    // 输出错误
+                    if(!MyError.empty()) cout << MyError << endl;
+                }
+                // 恢复重定向
+                ResumeRedirect();
             }
-            // 处理重定向
-            Redirect(inner_command);
-            // 调用函数执行命令 如果返回0代表函数结束
-            if(!execute(inner_command)) exit(0);
-            // 清理inner_command
-            inner_command.clear();
-            // 清理前一个的Input
-            MyInput.clear();
-            // 后一个的输入是前一个的输出
-            MyInput = MyOutput;
-            // 如果是最后一个进行输出
-            if (i == command.size() - 1){
-                if(!MyOutput.empty()) cout << MyOutput << endl;
-                // 输出错误
-                if(!MyError.empty()) cout << MyError << endl;
-            }
-            // 恢复重定向
-            ResumeRedirect();
             MyOutput.clear();
         }
         command.clear();
