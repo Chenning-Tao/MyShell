@@ -12,9 +12,10 @@ extern ProcessStruct MyProcess;
 extern union sigval MySigval;
 
 string output_status(int status){
-    if (status == Stop) return "Stop";
-    if (status == Done) return "Done";
-    if (status == Running) return "Running";
+    if (status == STOP) return "STOP";
+    if (status == SUSPEND) return "SUSPEND";
+    if (status == DONE) return "DONE";
+    if (status == RUNNING) return "RUNNING";
 }
 
 void my_exec_outside(vector<string> command){
@@ -30,39 +31,39 @@ void my_exec_outside(vector<string> command){
     argument_list[command.size()] = nullptr;
     // 创建子进程
     pid_t pid = fork();
-    // 打开重定向输入文件
-    int fd_in = open(MyRedirect.inFileName.c_str(), O_RDONLY);
-    // 打开重定向输出文件
-    int fd_out = open(MyRedirect.outFileName.c_str(), O_RDONLY);
     // 如果是子进程
     if (pid == 0)
     {
+        int fd_in, fd_out;
+        // 打开重定向输入文件
+        fd_in = open(MyRedirect.inFileName.c_str(), O_RDONLY);
         dup2(fd_in, STDIN_FILENO);
+        // 打开重定向输出文件
+        fd_out = open(MyRedirect.outFileName.c_str(), O_WRONLY);
         dup2(fd_out, STDOUT_FILENO);
+        // 关闭文件
+        close(fd_in);
+        close(fd_out);
         // 如果执行不成功
         if(execvp(argument_list[0], argument_list) == -1)
             MyError = "Illegal instruction!";
         exit(0);
     }
     // 如果是父进程
-    else{
+    else if (pid > 0){
         // 加入进程
         MyProcess.pid.push_back(pid);
         MyProcess.instruction.push_back(command[0]);
-        MyProcess.status.push_back(Running);
-        // 告诉父进程子进程有变化
-//        sigaction(SIGCLD, &act, nullptr);
-        // 将子进程放到前台
-        my_fg(pid);
-//        close(fd1); //关闭文件描述符
-//        close(fd2);
-//        MyProcess.ins.push_back(ins); //加入进程管理
-//        MyProcess.PID.push_back(pid);
-//        MyProcess.stauts.push_back(Running);
-//        sigaction(SIGCLD, &act, NULL);
-//        my_fg(pid); //等待该子进程结束
+        MyProcess.status.push_back(RUNNING);
+        MyProcess.type.emplace_back("FG");
+        int status;
+        // 找到对应编号
+        int i = 0;
+        while (MyProcess.pid[i++] != pid);
+        --i;
+        // 等待进程结束并汇报状态
+        waitpid(pid, &status, 0);
     }
-
 }
 
 void my_shift(int n){
@@ -186,23 +187,41 @@ void my_umask(const string& mode){
 }
 
 void my_handler(int sig, siginfo_t *info, void *p){
+    int i;
+    bool find = false;
     switch (sig) {
+        // 处理中断
         case SIGTSTP:
-            printf("test");
+             // 寻找前台应用
+            i = MyProcess.pid.size() - 1;
+            for(; i >= 0; --i){
+                if (MyProcess.status[i] != COMPLETE && MyProcess.type[i] == "FG") {
+                    find = true;
+                    break;
+                }
+            }
+            if (find){
+                // 更改状态
+                MyProcess.status[i] = SUSPEND;
+                MyProcess.type[i] = "BG";
+                // 将其挂起
+                kill(MyProcess.pid[i], SIGSTOP);
+                cout << endl;
+            }
             break;
-//            pid_t pid = fork();
-//            if(pid != 0) {
-//                printf("stop %d", info->si_pid);
-//                sigaction(SIGCHLD, &act, NULL);
-//            }
         // 子进程结束信号
         case SIGCHLD:
-            int i = 0;
             // 找到序号
-            while (i < MyProcess.pid.size() && MyProcess.pid[i] != info->si_pid)
-                ++i;
-            // 更改状态
-            MyProcess.status[i] = Done;
+            for (i = 0; i < MyProcess.pid.size(); ++i){
+                if(MyProcess.pid[i] == info->si_pid){
+                    find = true;
+                    break;
+                }
+            }
+            if (find && info->si_status == 0){
+                // 更改状态
+                MyProcess.status[i] = DONE;
+            }
             break;
     }
 }
@@ -213,18 +232,42 @@ void my_fg(int pid){
     while (MyProcess.pid[i++] != pid);
     --i;
     // 如果进程不在运行
-    if (MyProcess.status[i] != Running){
+    if (MyProcess.status[i] != RUNNING){
         // 让进程继续运行
-        sigqueue(pid, SIGCONT, MySigval);
+        kill(MyProcess.pid[i], SIGCONT);
         // 修改状态
-        MyProcess.status[i] = Running;
+        MyProcess.status[i] = RUNNING;
     }
+    MyProcess.type[i] = "FG";
     // 输出状态
-    cout << MyProcess.pid[i] << " " << MyProcess.instruction[i] << " " << output_status(MyProcess.status[i]) << endl;
-    int child;
+    cout << MyProcess.pid[i] << "  " << MyProcess.instruction[i] << "  " << output_status(MyProcess.status[i]) << endl;
     // 等待进程结束并汇报状态
-    waitpid(pid, &child, WUNTRACED);
-    // 获取状态
-    if (WIFSTOPPED(child)) MyProcess.status[i] = Stop;
-    else MyProcess.status[i] = Done;
+    waitpid(pid, nullptr, 0);
+}
+
+void my_jobs(){
+    for (int i = 0; i < MyProcess.pid.size(); ++i)
+    {
+        if (MyProcess.status[i] != COMPLETE)
+            MyOutput += (to_string(MyProcess.pid[i]) + "  " + MyProcess.instruction[i] + "  " + output_status(MyProcess.status[i]) + "\n");
+        // 已经完成的下次不显示
+        if (MyProcess.status[i] == DONE) MyProcess.status[i] = COMPLETE;
+    }
+    // 去掉最后一个回车
+    MyOutput = MyOutput.substr(0, MyOutput.size() - 1); //去掉最后一个回车
+}
+
+void my_bg(int pid){
+    // 找到对应序号
+    int i = 0;
+    while (MyProcess.pid[i++] != pid);
+    --i;
+    // 发送继续运行信号
+    kill(MyProcess.pid[i], SIGCONT);
+    // 修改状态
+    MyProcess.status[i] = RUNNING;
+    MyProcess.type[i] = "BG";
+    // 输出状态
+    cout << MyProcess.pid[i] << "  " << MyProcess.instruction[i] << "  " << output_status(MyProcess.status[i]) << endl;
+    waitpid(MyProcess.pid[i], nullptr, WNOHANG);
 }

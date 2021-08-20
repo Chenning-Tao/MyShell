@@ -34,6 +34,12 @@ void my_shift(int n);
 void my_exec_outside(vector<string> command);
 void my_handler(int sig, siginfo_t *info, void *p);
 void my_fg(int pid);
+void my_jobs();
+void my_bg(int pid);
 string output_status(int status);
+void SIGCHLD_handler(int sig_no, siginfo_t* info, void* vcontext);
+void SIGTSTP_handler(int sig_no, siginfo_t* info, void* vcontext);
+void sig_tstp(int sig);
+
 
 #endif //MYSHELL_COMMAND_H

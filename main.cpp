@@ -7,11 +7,10 @@ string MyOutput;
 string MyInput;
 string argv;
 string arg[10];
+string buildin_command[] = {"bg", "cd", "clr", "dir", "echo", "exec", "exit", "fg", "help", "jobs", "pwd", "set", "shift", "test", "time", "umask", "unset"};
 
 // 接受中断信号
 struct sigaction act;
-// 传输信号数据
-union sigval MySigval;
 bool background;
 
 RedirectStructure MyRedirect;
@@ -57,10 +56,12 @@ int main(int argc, char **argv) {
     MyRedirect.oldOut = cout.rdbuf();
     // 处理是否后台运行
     background = false;
+    // 接收ctrl z
 
     // 主程序循环
     while(true){
         string raw;
+        cin.clear();
         if(script_flag){
             // 从脚本读入
             if(!getline(file, raw)){
@@ -90,11 +91,11 @@ int main(int argc, char **argv) {
             // 对命令按照空格划分
             split(command[i], inner_command, ' ');
             // 判断是否后台运行
-            if(command[command.size() - 1] == "&"){
+            if(inner_command[inner_command.size() - 1] == "&"){
                 // 设置为true
                 background = true;
                 // 删除最后一个
-                command.erase(command.begin() + command.size() - 1);
+                inner_command.erase(inner_command.begin() + inner_command.size() - 1);
             }
             // 处理重定向
             Redirect(inner_command);
@@ -120,6 +121,7 @@ int main(int argc, char **argv) {
     }
 }
 
+
 void ResumeRedirect() {
     // 关闭文件
     MyRedirect.inFile.close();
@@ -136,24 +138,24 @@ void Redirect(vector<string> &command) {
         if (i != command.size() - 1){
             // 输出重定向
             if (command[i] == ">" || command[i] == ">>"){
-                // 存储旧的流
-                MyRedirect.oldOut = cout.rdbuf(MyRedirect.outFile.rdbuf());
                 // 设置输出内容的名字
                 MyRedirect.outFileName = command[i+1];
                 // 输出流设置
                 if (command[i] == ">") MyRedirect.outFile.open(MyRedirect.outFileName, ios::out);
                 if (command[i] == ">>") MyRedirect.outFile.open(MyRedirect.outFileName, ios::app);
+                // 存储旧的流
+                MyRedirect.oldOut = cout.rdbuf(MyRedirect.outFile.rdbuf());
                 // 记录位置
                 out = i;
             }
             // 输入重定向
             else if(command[i] == "<"){
-                // 存储旧的流
-                MyRedirect.oldIn = cin.rdbuf(MyRedirect.inFile.rdbuf());
                 // 设置输入内容的名字
                 MyRedirect.inFileName = command[i+1];
                 // 输入流设置
                 MyRedirect.inFile.open(MyRedirect.inFileName, ios::in);
+                // 存储旧的流
+                MyRedirect.oldIn = cin.rdbuf(MyRedirect.inFile.rdbuf());
                 // 记录位置
                 in = i;
             }
@@ -201,8 +203,17 @@ int execute(const vector<string> &command) {
         return 0;
     }
     // 后台运行
-    else if (main_command == "bg" || background){
-
+    else if (main_command == "bg") {
+        // 如果只有一个 找到第一个未完成的进程
+        if (command.size() == 1){
+            for (int i = MyProcess.pid.size() - 1; i >= 0; --i)
+                if (MyProcess.status[i] == SUSPEND){
+                    my_bg(MyProcess.pid[i]);
+                    break;
+                }
+        }
+        else if (command.size() == 2) my_bg(stoi(command[1]));
+        else MyError = "Too many arguments!";
     }
     // 更改目录位置
     else if (main_command == "cd"){
@@ -240,10 +251,21 @@ int execute(const vector<string> &command) {
         }
     }
     else if (main_command == "exec"){
-
+        // 清除掉第一个
+        vector<string> temp(command);
+        temp.erase(command.begin());
+        my_exec_outside(temp);
     }
+    // 前台显示
     else if (main_command == "fg"){
-
+        // 如果只有一个 找到第一个未完成的进程
+        if (command.size() == 1){
+            for (int i = 0; i < MyProcess.pid.size(); ++i)
+                if (MyProcess.status[i] == RUNNING || MyProcess.status[i] == SUSPEND)
+                    my_fg(MyProcess.pid[i]);
+        }
+        else if (command.size() == 2) my_fg(stoi(command[1]));
+        else MyError = "Too many arguments!";
     }
     else if (main_command == "help"){
         // 获取help文件位置
@@ -252,8 +274,10 @@ int execute(const vector<string> &command) {
         // 打开
         my_cat(file_path);
     }
+    // 显示所有运行的程序
     else if (main_command == "jobs"){
-
+        if (command.size() != 1) MyError = "Too many arugment!";
+        else my_jobs();
     }
     // 显示当前目录
     else if (main_command == "pwd"){
@@ -282,16 +306,16 @@ int execute(const vector<string> &command) {
         else MyError = "Too many argument!";
     }
     // 显示文件内容
-//    else if (main_command == "cat"){
-//        if (command.size() == 1) MyError = "No file specified!";
-//        else {
-//            // 遍历所有可能的输入文件
-//            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
-//                if (*iter != " ") my_cat(*iter);
-//            }
-//        }
-//        argv = MyOutput;
-//    }
+    else if (main_command == "cat"){
+        if (command.size() == 1) MyError = "No file specified!";
+        else {
+            // 遍历所有可能的输入文件
+            for (auto iter = command.begin() + 1; iter != command.end(); ++iter) {
+                if (*iter != " ") my_cat(*iter);
+            }
+        }
+        argv = MyOutput;
+    }
     // 测试指令
     else if (main_command == "test"){
         if (command.size() > 4) MyError = "Too many argument!";
@@ -306,6 +330,8 @@ int execute(const vector<string> &command) {
             time_t now = time(nullptr);
             // 把 now 转换为字符串形式
             MyOutput = ctime(&now);
+            // 去掉最后一个回车
+            MyOutput = MyOutput.substr(0, MyOutput.size() - 1);
             argv = MyOutput;
         }
     }
@@ -352,16 +378,12 @@ void InitEnv() {
     // 设置help的目录
     setenv("shell", current_dir, 1);
 
-    // 设置不屏蔽信号
+//    MySigval.sival_int = 100;
     sigemptyset(&act.sa_mask);
-    // 把处理函数的地址给函数指针
-    act.sa_sigaction = my_handler;
-    // 设置用第二个处理函数
     act.sa_flags = SA_SIGINFO;
-    // 接收ctrl+z
-    sigaction(SIGTSTP, &act, nullptr);
-    // 接收继续执行
-    sigaction(SIGCONT, &act, nullptr);
+    act.sa_sigaction = my_handler;  //接受命令
+    sigaction(SIGTSTP, &act, nullptr); //接收ctrl+z
+    sigaction(SIGCHLD, &act, nullptr);
 }
 
 void DisplayPrompt() {

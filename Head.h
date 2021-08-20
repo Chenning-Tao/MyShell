@@ -22,12 +22,18 @@ using namespace std;
 #define RED "\e[0;31m"
 
 #define HOST_NAME_LENGTH 100
-#define Running 1
-#define Done 2
-#define Stop 3
+#define RUNNING 1
+#define DONE 2
+#define STOP 3
+#define COMPLETE 4
+#define SUSPEND 5
 
 // 重定向的结构
 struct RedirectStructure{
+    int in;
+    int out;
+    int in_backup;
+    int out_backup;
     ifstream inFile;
     ofstream outFile;
     streambuf *oldIn{};
@@ -41,6 +47,7 @@ struct ProcessStruct{
     vector<pid_t> pid;
     vector<string> instruction;
     vector<int> status;
+    vector<string> type;
 };
 
 #endif //MYSHELL_HEAD_H
